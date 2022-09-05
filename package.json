@@ -1,6 +1,6 @@
 {
     "name": "@botcity/botcity-maestro-sdk",
-    "version": "0.0.4",
+    "version": "0.1.0",
     "description": "Botcity Maestro SDK",
     "author": "botcity",
     "main": "dist/index.js",
