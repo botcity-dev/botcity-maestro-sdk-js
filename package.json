@@ -9,7 +9,21 @@
         "clean": "rimraf dist",
         "prebuild": "npm run clean",
         "build": "tsc",
-        "release": "standard-version"
+        "release": "release-it"
+    },
+    "release-it": {
+        "npm": {
+          "publish": false
+        },
+        "github": {
+          "release": true
+        },
+        "git": {
+          "commitMessage": "chore: release ${version}"
+        },
+        "plugins": {
+          "news-fragments": {}
+        }
     },
     "contributors": [
         {
@@ -29,7 +43,6 @@
         "news-fragments": "^2.0.5",
         "release-it": "^15.4.1",
         "rimraf": "^3.0.2",
-        "standard-version": "^9.5.0",
         "typescript": "^4.2.4"
     },
     "dependencies": {
