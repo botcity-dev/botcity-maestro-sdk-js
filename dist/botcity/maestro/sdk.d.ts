@@ -1,0 +1,32 @@
+import { AxiosResponse } from "axios";
+export declare class BotMaestroSdk {
+    private _server;
+    private _login;
+    private _key;
+    private _accessToken;
+    constructor(server: string, login: string, key: string);
+    get server(): string;
+    set server(server: string);
+    get accessToken(): string;
+    private get headers();
+    set accessToken(accessToken: string);
+    login(server?: string, login?: string, key?: string): Promise<void>;
+    logoff(): Promise<void>;
+    createTask(activityLabel: string, parameters: Object, test?: boolean): Promise<any>;
+    finishTask(taskId: string, state: string, finishStatus: Object, finishMessage?: string): Promise<any>;
+    getTask(taskId: string): Promise<any>;
+    createLog(activityLabel: string, columns: Array<object>): Promise<AxiosResponse<any, any>>;
+    getLogs(): Promise<any>;
+    getLog(idLog: string): Promise<any>;
+    fetchDataLog(idLog: string, days?: number): Promise<any>;
+    downloadCsvLog(idLog: string, filepath: string, days?: number): Promise<any>;
+    deleteLog(idLog: string): Promise<any>;
+    logEntry(idLog: string, content: Object): Promise<any>;
+    createAlert(taskId: string, title: string, message: string, type: string): Promise<any>;
+    createMessage(emails: Array<String>, logins: String[] | undefined, subject: string, body: string, type: string): Promise<any>;
+    createArtifact(taskId: string, name: string, filename: string): Promise<any>;
+    uploadFile(artifactId: string, filepath: string): Promise<any>;
+    uploadArtifact(taskId: string, name: string, filename: string, filepath: string): Promise<any>;
+    getArtifacts(size: string, page: string, sort?: Array<String>, days?: string): Promise<any>;
+    downloadArtifact(artifactId: string, filepath: string): Promise<any>;
+}
