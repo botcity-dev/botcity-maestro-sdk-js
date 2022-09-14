@@ -100,7 +100,7 @@ export class BotMaestroSdk {
     finishMessage: string = ''
   ): Promise<Task> {
     const url = `${this._server}/api/v2/task/${taskId}`
-    const data = { state: "FINISHED", finishStatus, finishMessage }
+    const data = { state: 'FINISHED', finishStatus, finishMessage }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
