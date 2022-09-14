@@ -1,8 +1,10 @@
+interface Columns {
+  name: string
+  label: string
+  width: number
+}
 
 // TODO: Change in next version
-
-import { Column } from './common'
-
 // TODO: Verify in next version
 export interface Logs {
   id: number
@@ -28,10 +30,10 @@ export interface Log {
   id: string
   organizationLabel: string
   activityLabel: string
-  columns: Column[]
+  columns: Columns[]
 }
 
 export interface DataLog {
-  columns: Column[]
+  columns: Columns[]
   dateCreation: string
 }
