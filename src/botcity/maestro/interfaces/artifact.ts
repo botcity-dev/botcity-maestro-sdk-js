@@ -1,3 +1,5 @@
+import { Pageable, Sort } from './common'
+
 interface Content {
   id: number
   type: string
@@ -7,21 +9,6 @@ interface Content {
   organizationId: number
   dateCreation: string
   taskName: string
-}
-
-interface Sort {
-  sorted: boolean
-  unsorted: boolean
-  empty: boolean
-}
-
-interface Pageable {
-  sort: Sort
-  pageNumber: number
-  pageSize: number
-  offset: number
-  paged: boolean
-  unpaged: boolean
 }
 
 export interface Artifact {
