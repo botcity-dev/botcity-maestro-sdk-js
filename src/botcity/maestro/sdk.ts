@@ -96,12 +96,11 @@ export class BotMaestroSdk {
   @catchError
   async finishTask (
     taskId: string | number,
-    state: string,
     finishStatus: Object,
     finishMessage: string = ''
   ): Promise<Task> {
     const url = `${this._server}/api/v2/task/${taskId}`
-    const data = { state, finishStatus, finishMessage }
+    const data = { state: 'FINISHED', finishStatus, finishMessage }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
