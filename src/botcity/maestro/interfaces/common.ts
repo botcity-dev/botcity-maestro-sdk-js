@@ -12,3 +12,9 @@ export interface Pageable {
   paged: boolean
   unpaged: boolean
 }
+
+export interface IColumn {
+  name: string
+  label: string
+  width: number
+}

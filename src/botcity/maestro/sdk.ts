@@ -1,8 +1,9 @@
 import axios, { AxiosResponse } from 'axios'
 import { ensureAccessToken, catchError } from './utils'
-import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts } from './interfaces'
+import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
+import { Column } from './columns'
 
 export class BotMaestroSdk {
   private _server: string
@@ -123,9 +124,10 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createLog (activityLabel: string, columns: object[]): Promise<Log> {
+  async createLog (activityLabel: string, columns: Column[]): Promise<Log> {
     const url = `${this._server}/api/v2/log`
-    const data = { activityLabel, columns, organizationLabel: this._login }
+    const valueColumns: IColumn[] = columns.map(column => column.object)
+    const data = { activityLabel, valueColumns, organizationLabel: this._login }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
