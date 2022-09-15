@@ -87,7 +87,7 @@
 
     // const downloadArtifacts = await sdk.downloadArtifact(`${createArtifact.id}`, "test.png")
     // console.log({downloadArtifacts})
-}   
+// }   
 
 // tasks()
 // logs()
