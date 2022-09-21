@@ -66,8 +66,10 @@ export class BotMaestroSdk {
       const data = { login: this._login, key: this._key }
       const response: AxiosResponse = await axios.post(url, data)
       this.accessToken = response.data.accessToken
-    } catch (error) {
-      console.error(error)
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw Error('Login failed to server')
+      }
       throw error
     }
   }
