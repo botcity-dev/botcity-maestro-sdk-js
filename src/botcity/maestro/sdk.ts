@@ -1,22 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
-import {
-  ensureAccessToken,
-  catchError,
-  getMessageInError,
-  getStackInError,
-  getTypeInError
-} from './utils'
-import {
-  Alert,
-  DataLog,
-  Log,
-  Logs,
-  Task,
-  Artifact,
-  Artifacts,
-  IColumn,
-  Attachment
-} from './interfaces'
+import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError } from './utils'
+import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn, Attachment } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
 import { Column } from './columns'
@@ -122,7 +106,6 @@ export class BotMaestroSdk {
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
-        console.log({ error })
         throw new Error(error.response.data.message)
       })
     return response.data
@@ -133,7 +116,6 @@ export class BotMaestroSdk {
   async getTask (taskId: string | number): Promise<Task> {
     const url = `${this._server}/api/v2/task/${taskId}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
     return response.data
@@ -143,7 +125,7 @@ export class BotMaestroSdk {
   @catchError
   async createLog (activityLabel: string, columns: Column[]): Promise<Log> {
     const url = `${this._server}/api/v2/log`
-    const valueColumns: IColumn[] = columns.map((column) => column.object)
+    const valueColumns: IColumn[] = columns.map(column => column.object)
     const data = { activityLabel, valueColumns, organizationLabel: this._login }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -158,7 +140,6 @@ export class BotMaestroSdk {
   async getLogs (): Promise<Logs[]> {
     const url = `${this._server}/api/v2/log`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
     return response.data
@@ -180,7 +161,6 @@ export class BotMaestroSdk {
   async fetchDataLog (idLog: string, days: number = 7): Promise<DataLog[]> {
     const url = `${this._server}/api/v2/log/${idLog}/entry-list?days=${days}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
     return response.data
@@ -213,7 +193,6 @@ export class BotMaestroSdk {
   async logEntry (idLog: string, content: Object): Promise<void> {
     const url = `${this._server}/api/v2/log/${idLog}/entry`
     await axios.post(url, content, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
   }
@@ -304,7 +283,6 @@ export class BotMaestroSdk {
     )}&days=${days}`
     // TODO: Implement not pageable
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
     return response.data
@@ -317,7 +295,6 @@ export class BotMaestroSdk {
     const response: AxiosResponse = await axios
       .get(url, { ...this.headers, responseType: 'arraybuffer' })
       .catch((error: any) => {
-        console.log({ error })
         throw new Error(error.response.data.message)
       })
     await fs.promises.writeFile(filepath, response.data)
@@ -326,13 +303,7 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createError (
-    taskId: string,
-    error: Error,
-    tags: object[] = [],
-    screenshot: string = '',
-    attachments: Attachment[] = []
-  ): Promise<any> {
+  async createError (taskId: string, error: Error, tags: object[] = [], screenshot: string = '', attachments: Attachment[] = []): Promise<any> {
     const message: string = getMessageInError(error)
     const type: string = getTypeInError(error)
     const stackTrace: string = getStackInError(error)
@@ -344,7 +315,6 @@ export class BotMaestroSdk {
       .catch((error: any) => {
         throw new Error(error.response.data.message)
       })
-    console.log(screenshot)
     if (screenshot !== '') {
       await this.createScreenshot(response.data.id, screenshot)
     }
