@@ -306,4 +306,33 @@ export class BotMaestroSdk {
     await fs.promises.writeFile(filepath, response.data)
     return response.data
   }
+
+  @ensureAccessToken
+  @catchError
+  async getCredential (
+    label: string,
+    key: string
+  ): Promise<any> {
+    const url = `${this._server}/api/v2/credential/${label}/key/${key}`
+    const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
+      console.log({ error })
+      throw new Error(error.response.data.message)
+    })
+    return response.data
+  }
+
+  @ensureAccessToken
+  @catchError
+  async createCredential (
+    label: string,
+    key: string,
+    value: any
+  ): Promise<void> {
+    const url = `${this._server}/api/v2/credential/${label}/key`
+    const data = { key, value }
+    await axios.post(url, data, this.headers).catch((error: any) => {
+      console.log({ error })
+      throw new Error(error.response.data.message)
+    })
+  }
 }
