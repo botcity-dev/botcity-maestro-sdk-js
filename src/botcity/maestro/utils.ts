@@ -33,3 +33,18 @@ export const catchError = (
     }
   }
 }
+
+export const getStackInError = (error: Error): string => {
+  if (error.stack !== undefined) return error.stack
+  return ''
+}
+
+export const getTypeInError = (error: Error): string => {
+  if (error.constructor.name !== undefined) return error.constructor.name
+  return ''
+}
+
+export const getMessageInError = (error: Error): string => {
+  if (error.message !== undefined) return error.message
+  return ''
+}
