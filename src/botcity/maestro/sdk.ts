@@ -326,10 +326,12 @@ export class BotMaestroSdk {
     label: string
   ): Promise<any> {
     const url = `${this._server}/api/v2/credential/${label}`
-    const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      throw new Error(error.response.data.message)
-    })
-    return response.data
+    try {
+      const response: AxiosResponse = await axios.get(url, this.headers)
+      return response.data
+    } catch {
+      return null
+    }
   }
 
   @ensureAccessToken
@@ -359,21 +361,16 @@ export class BotMaestroSdk {
     key: string,
     value: any
   ): Promise<any> {
-    let credential
-    try {
-      credential = await this.getCredentialByLabel(label)
-      if (credential == null) throw new Error('Credential not found')
-      const url = `${this._server}/api/v2/credential/${label}/key`
-      const data = { key, value }
-      await axios.post(url, data, this.headers).catch((error: any) => {
-        throw new Error(error.response.data.message)
-      })
-    } catch (error) {
-      let message = ''
-      if (error instanceof Error) message = error.message
-      if (message.toLowerCase() !== 'credential not found') throw new Error(`Error during message. Server returned: ${message}`)
+    let credential = await this.getCredentialByLabel(label)
+    if (credential == null) {
       credential = await this.createCredentialByLabel(label, key, value)
+      return credential.data
     }
-    return credential
+    const url = `${this._server}/api/v2/credential/${label}/key`
+    const data = { key, value }
+    credential = await axios.post(url, data, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
+    return credential.data
   }
 }
