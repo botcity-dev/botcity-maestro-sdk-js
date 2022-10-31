@@ -315,10 +315,41 @@ export class BotMaestroSdk {
   ): Promise<any> {
     const url = `${this._server}/api/v2/credential/${label}/key/${key}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
-      console.log({ error })
       throw new Error(error.response.data.message)
     })
     return response.data
+  }
+
+  @ensureAccessToken
+  @catchError
+  async getCredentialByLabel (
+    label: string
+  ): Promise<any> {
+    const url = `${this._server}/api/v2/credential/${label}`
+    const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
+    return response.data
+  }
+
+  @ensureAccessToken
+  @catchError
+  async createCredentialByLabel (
+    label: string,
+    key: string,
+    value: any
+  ): Promise<any> {
+    const data = {
+      label,
+      secrets: [
+        { key, value, valid: true }
+      ]
+    }
+    const url = `${this._server}/api/v2/credential`
+    const credential = await axios.post(url, data, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
+    return credential
   }
 
   @ensureAccessToken
@@ -327,12 +358,22 @@ export class BotMaestroSdk {
     label: string,
     key: string,
     value: any
-  ): Promise<void> {
-    const url = `${this._server}/api/v2/credential/${label}/key`
-    const data = { key, value }
-    await axios.post(url, data, this.headers).catch((error: any) => {
-      console.log({ error })
-      throw new Error(error.response.data.message)
-    })
+  ): Promise<any> {
+    let credential
+    try {
+      credential = await this.getCredentialByLabel(label)
+      if (credential == null) throw new Error('Credential not found')
+      const url = `${this._server}/api/v2/credential/${label}/key`
+      const data = { key, value }
+      await axios.post(url, data, this.headers).catch((error: any) => {
+        throw new Error(error.response.data.message)
+      })
+    } catch (error) {
+      let message = ''
+      if (error instanceof Error) message = error.message
+      if (message.toLowerCase() !== 'credential not found') throw new Error(`Error during message. Server returned: ${message}`)
+      credential = await this.createCredentialByLabel(label, key, value)
+    }
+    return credential
   }
 }
