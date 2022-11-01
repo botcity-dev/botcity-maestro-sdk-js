@@ -57,12 +57,12 @@ export const getMessageInError = (error: Error): string => {
 
 export const getDefaultTags = async (tags: any): Promise<any> => {
   const userInfo = os.userInfo()
-  tags.user_name = userInfo.username
-  tags.host_name = os.hostname()
-  tags.os_name = os.platform()
-  tags.os_version = os.release()
-  tags.node_version = process.version
-  tags.npm_list = await npmls()
+  tags['user.name'] = userInfo.username
+  tags['host.name'] = os.hostname()
+  tags['os.name'] = os.platform()
+  tags['os.version'] = os.release()
+  tags['node.version'] = process.version
+  tags['npm.list'] = await npmls()
   return tags
 }
 
