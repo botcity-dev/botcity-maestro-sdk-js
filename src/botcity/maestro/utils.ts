@@ -58,7 +58,7 @@ export const getMessageInError = (error: Error): string => {
 export const getDefaultTags = async (tags: any): Promise<any> => {
   const userInfo = os.userInfo()
   tags.user_name = userInfo.username
-  tags.computer_name = os.hostname()
+  tags.host_name = os.hostname()
   tags.os_name = os.platform()
   tags.os_version = os.release()
   tags.node_version = process.version
