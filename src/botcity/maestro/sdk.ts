@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
-import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError } from './utils'
-import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn, Attachment } from './interfaces'
+import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags } from './utils'
+import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
 import { Column } from './columns'
@@ -303,12 +303,13 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createError (taskId: string, error: Error, tags: object[] = [], screenshot: string = '', attachments: Attachment[] = []): Promise<any> {
+  async createError (taskId: string, error: Error, tags: object = {}, screenshot: string = '', attachments: string[] = []): Promise<any> {
     const message: string = getMessageInError(error)
     const type: string = getTypeInError(error)
     const stackTrace: string = getStackInError(error)
     const language: string = 'javascript'.toUpperCase()
     const url = `${this._server}/api/v2/error`
+    tags = await getDefaultTags(tags)
     const data = { taskId, type, message, stackTrace, language, tags }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -331,26 +332,9 @@ export class BotMaestroSdk {
   private async createScreenshot (errorId: string, filepath: string): Promise<void> {
     const formData = new FormData()
     const file = fs.createReadStream(filepath)
-    formData.append('file', file)
-    const url = `${this._server}/api/v2/error/${errorId}/screenshot`
-    const contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
-    const headers: object = {
-      ...this.headers,
-      'Content-Type': contentType
-    }
-    await axios.post(url, formData, headers).catch((error: any) => {
-      throw new Error(error.response.data.message)
-    })
-  }
-
-  @ensureAccessToken
-  @catchError
-  private async createAttachments (errorId: string, attachments: Attachment[]): Promise<void> {
-    const url = `${this._server}/api/v2/error/${errorId}/attachments`
-    for (const attachment of attachments) {
-      const formData = new FormData()
-      const file = fs.createReadStream(attachment.filepath)
-      formData.append('file', file, { filename: basename(attachment.filepath) })
+    try {
+      formData.append('file', file)
+      const url = `${this._server}/api/v2/error/${errorId}/screenshot`
       const contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
       const headers: object = {
         ...this.headers,
@@ -359,6 +343,31 @@ export class BotMaestroSdk {
       await axios.post(url, formData, headers).catch((error: any) => {
         throw new Error(error.response.data.message)
       })
+    } finally {
+      file.destroy()
+    }
+  }
+
+  @ensureAccessToken
+  @catchError
+  private async createAttachments (errorId: string, attachments: string[]): Promise<void> {
+    const url = `${this._server}/api/v2/error/${errorId}/attachments`
+    for (const attachment of attachments) {
+      const formData = new FormData()
+      const file = fs.createReadStream(attachment)
+      try {
+        formData.append('file', file, { filename: basename(attachment) })
+        const contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
+        const headers: object = {
+          ...this.headers,
+          'Content-Type': contentType
+        }
+        await axios.post(url, formData, headers).catch((error: any) => {
+          throw new Error(error.response.data.message)
+        })
+      } finally {
+        file.destroy()
+      }
     }
   }
 }

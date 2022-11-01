@@ -1,4 +1,10 @@
 import { BotMaestroSdk } from './sdk'
+import os from 'os'
+import process from 'node:process'
+import util from 'util'
+import childProcess from 'child_process'
+
+const exec = util.promisify(childProcess.exec)
 
 export const ensureAccessToken = (
   _target: Object,
@@ -47,4 +53,34 @@ export const getTypeInError = (error: Error): string => {
 export const getMessageInError = (error: Error): string => {
   if (error.message !== undefined) return error.message
   return ''
+}
+
+export const getDefaultTags = async (tags: any): Promise<any> => {
+  const userInfo = os.userInfo()
+  tags.user_name = userInfo.username
+  tags.computer_name = os.hostname()
+  tags.os_name = os.platform()
+  tags.os_version = os.release()
+  tags.node_version = process.version
+  tags.npm_list = await npmls()
+  return tags
+}
+
+const npmls = async (): Promise<object> => {
+  try {
+    const { stdout } = await exec('npm ls --json')
+    const dependencies = JSON.parse(stdout).dependencies
+    const response = getVersionsToDependencies(dependencies)
+    return response
+  } catch {
+    return {}
+  }
+}
+
+const getVersionsToDependencies = (dependencies: any): any => {
+  const response: any = {}
+  for (const dependency in dependencies) {
+    response[dependency] = dependencies[dependency].version
+  }
+  return response
 }

@@ -1,7 +1,6 @@
 // import { BotMaestroSdk } from "../src/botcity"
 
 // const sdk = new BotMaestroSdk(
-
 // )
 
 // const tasks = async () => {
@@ -89,8 +88,23 @@
     // console.log({downloadArtifacts})
 // }   
 
+// const errors = async () => {
+//     await sdk.login()
+
+//     try {
+//         eval("hoo bar");
+//     } catch (error: any) {
+//         const createError =  await sdk.createError(
+//             '31057', error, {'teste': 123}, '/home/kayque/Imagens/kkkkk.png', ['/home/kayque/Imagens/kkkkk.png']
+//         )
+//         console.log({ createError })
+    
+//     }
+// }   
+
 // tasks()
 // logs()
 // alerts()
 // messages()
 // artifacts()
+// errors()
