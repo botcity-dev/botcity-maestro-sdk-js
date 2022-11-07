@@ -100,6 +100,16 @@
 //         console.log({ createError })
     
 //     }
+// const credentials = async () => {
+//     await sdk.login()
+
+
+//     const createCredential =  await sdk.createCredential("testJs", "js", "javascript")
+//     console.log({ createCredential })
+
+//     const getCredential =  await sdk.getCredential("testJs", "js")
+//     console.log({ getCredential })
+
 // }   
 
 // tasks()
@@ -108,3 +118,4 @@
 // messages()
 // artifacts()
 // errors()
+// credentials()

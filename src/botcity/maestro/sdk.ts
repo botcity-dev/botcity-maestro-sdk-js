@@ -331,7 +331,16 @@ export class BotMaestroSdk {
     } finally {
       fs.unlinkSync(npmListPath)
     }
+  }
 
+  async getCredential (
+    label: string,
+    key: string
+  ): Promise<any> {
+    const url = `${this._server}/api/v2/credential/${label}/key/${key}`
+    const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
     return response.data
   }
 
@@ -356,6 +365,18 @@ export class BotMaestroSdk {
     }
   }
 
+  async getCredentialByLabel (
+    label: string
+  ): Promise<any> {
+    const url = `${this._server}/api/v2/credential/${label}`
+    try {
+      const response: AxiosResponse = await axios.get(url, this.headers)
+      return response.data
+    } catch {
+      return null
+    }
+  }
+
   @ensureAccessToken
   @catchError
   private async createAttachments (errorId: string, attachments: string[]): Promise<void> {
@@ -377,5 +398,43 @@ export class BotMaestroSdk {
         file.destroy()
       }
     }
+  }
+
+  async createCredentialByLabel (
+    label: string,
+    key: string,
+    value: any
+  ): Promise<any> {
+    const data = {
+      label,
+      secrets: [
+        { key, value, valid: true }
+      ]
+    }
+    const url = `${this._server}/api/v2/credential`
+    const credential = await axios.post(url, data, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
+    return credential
+  }
+
+  @ensureAccessToken
+  @catchError
+  async createCredential (
+    label: string,
+    key: string,
+    value: any
+  ): Promise<any> {
+    let credential = await this.getCredentialByLabel(label)
+    if (credential == null) {
+      credential = await this.createCredentialByLabel(label, key, value)
+      return credential.data
+    }
+    const url = `${this._server}/api/v2/credential/${label}/key`
+    const data = { key, value }
+    credential = await axios.post(url, data, this.headers).catch((error: any) => {
+      throw new Error(error.response.data.message)
+    })
+    return credential.data
   }
 }
