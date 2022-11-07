@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags } from './utils'
+import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags, createNpmList } from './utils'
 import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
@@ -320,8 +320,16 @@ export class BotMaestroSdk {
       await this.createScreenshot(response.data.id, screenshot)
     }
 
-    if (attachments.length > 0) {
-      await this.createAttachments(response.data.id, attachments)
+    const npmListPath = await createNpmList()
+
+    attachments.push(npmListPath)
+
+    try {
+      if (attachments.length > 0) {
+        await this.createAttachments(response.data.id, attachments)
+      }
+    } finally {
+      fs.unlinkSync(npmListPath)
     }
 
     return response.data

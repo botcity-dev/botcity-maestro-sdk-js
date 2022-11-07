@@ -3,6 +3,8 @@ import os from 'os'
 import process from 'node:process'
 import util from 'util'
 import childProcess from 'child_process'
+import fs from 'fs/promises'
+import path from 'path'
 
 const exec = util.promisify(childProcess.exec)
 
@@ -62,7 +64,6 @@ export const getDefaultTags = async (tags: any): Promise<any> => {
   tags.os_name = os.platform()
   tags.os_version = os.release()
   tags.node_version = process.version
-  tags.npm_list = await npmls()
   return tags
 }
 
@@ -83,4 +84,18 @@ const getVersionsToDependencies = (dependencies: any): any => {
     response[dependency] = dependencies[dependency].version
   }
   return response
+}
+
+export const createNpmList = async (): Promise<string> => {
+  const filepath = tmpFile('npmlist.txt')
+  const npmList = await npmls()
+  await fs.writeFile(filepath, `${JSON.stringify(npmList)}`)
+  return filepath
+}
+
+const tmpFile = (filename: string): string => {
+  return path.join(
+    os.tmpdir(),
+    filename
+  ).toString()
 }
