@@ -123,6 +123,36 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
+  async restartTask (
+    taskId: string | number
+  ): Promise<Task> {
+    const url = `${this._server}/api/v2/task/${taskId}`
+    const data = { state: 'START' }
+    const response: AxiosResponse = await axios
+      .post(url, data, this.headers)
+      .catch((error: any) => {
+        throw new Error(error.response.data.message)
+      })
+    return response.data
+  }
+
+  @ensureAccessToken
+  @catchError
+  async interruptTask (
+    taskId: string | number
+  ): Promise<Task> {
+    const url = `${this._server}/api/v2/task/${taskId}`
+    const data = { interrupted: true }
+    const response: AxiosResponse = await axios
+      .post(url, data, this.headers)
+      .catch((error: any) => {
+        throw new Error(error.response.data.message)
+      })
+    return response.data
+  }
+
+  @ensureAccessToken
+  @catchError
   async createLog (activityLabel: string, columns: Column[]): Promise<Log> {
     const url = `${this._server}/api/v2/log`
     const valueColumns: IColumn[] = columns.map(column => column.object)
