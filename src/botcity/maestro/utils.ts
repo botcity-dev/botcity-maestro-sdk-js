@@ -99,3 +99,10 @@ const tmpFile = (filename: string): string => {
     filename
   ).toString()
 }
+
+export const verifyUrlServer = (server: string): string => {
+  if (server !== '' && server.slice(-1) === '/') {
+    server = server.slice(0, -1)
+  }
+  return server
+}

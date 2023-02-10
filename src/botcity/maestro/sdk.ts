@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags, createNpmList } from './utils'
+import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags, createNpmList, verifyUrlServer } from './utils'
 import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
@@ -13,7 +13,7 @@ export class BotMaestroSdk {
   private _accessToken: string
 
   constructor (server: string, login: string, key: string) {
-    this._server = server
+    this._server = verifyUrlServer(server)
     this._login = login
     this._key = key
     this._accessToken = ''
@@ -24,10 +24,7 @@ export class BotMaestroSdk {
   }
 
   set server (server: string) {
-    if (server !== '' && server.slice(-1) === '/') {
-      server = server.slice(0, -1)
-    }
-    this._server = server
+    this._server = verifyUrlServer(server)
   }
 
   private get headers (): Object {
@@ -45,7 +42,7 @@ export class BotMaestroSdk {
   async login (server: string = '', login: string = '', key: string = ''): Promise<void> {
     try {
       if (server !== '') {
-        this.server = server
+        this.server = verifyUrlServer(server)
       }
 
       this._login = login !== '' ? login : this._login
@@ -63,7 +60,7 @@ export class BotMaestroSdk {
         throw new Error('Key is required.')
       }
 
-      const url = `${this._server}/api/v2/workspace/login`
+      const url = `${this.server}/api/v2/workspace/login`
       const data = { login: this._login, key: this._key }
       const response: AxiosResponse = await axios.post(url, data)
       this.accessToken = response.data.accessToken
@@ -84,7 +81,7 @@ export class BotMaestroSdk {
     parameters: Object,
     test: boolean = false
   ): Promise<Task> {
-    const url = `${this._server}/api/v2/task`
+    const url = `${this.server}/api/v2/task`
     const data = { activityLabel, test, parameters }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -101,7 +98,7 @@ export class BotMaestroSdk {
     finishStatus: Object,
     finishMessage: string = ''
   ): Promise<Task> {
-    const url = `${this._server}/api/v2/task/${taskId}`
+    const url = `${this.server}/api/v2/task/${taskId}`
     const data = { state: 'FINISHED', finishStatus, finishMessage }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -114,7 +111,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async getTask (taskId: string | number): Promise<Task> {
-    const url = `${this._server}/api/v2/task/${taskId}`
+    const url = `${this.server}/api/v2/task/${taskId}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -126,7 +123,7 @@ export class BotMaestroSdk {
   async restartTask (
     taskId: string | number
   ): Promise<Task> {
-    const url = `${this._server}/api/v2/task/${taskId}`
+    const url = `${this.server}/api/v2/task/${taskId}`
     const data = { state: 'START' }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -141,7 +138,7 @@ export class BotMaestroSdk {
   async interruptTask (
     taskId: string | number
   ): Promise<Task> {
-    const url = `${this._server}/api/v2/task/${taskId}`
+    const url = `${this.server}/api/v2/task/${taskId}`
     const data = { interrupted: true }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -154,7 +151,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async createLog (activityLabel: string, columns: Column[]): Promise<Log> {
-    const url = `${this._server}/api/v2/log`
+    const url = `${this.server}/api/v2/log`
     const valueColumns: IColumn[] = columns.map(column => column.object)
     const data = { activityLabel, valueColumns, organizationLabel: this._login }
     const response: AxiosResponse = await axios
@@ -168,7 +165,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async getLogs (): Promise<Logs[]> {
-    const url = `${this._server}/api/v2/log`
+    const url = `${this.server}/api/v2/log`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -178,7 +175,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async getLog (idLog: string): Promise<Log> {
-    const url = `${this._server}/api/v2/log/${idLog}`
+    const url = `${this.server}/api/v2/log/${idLog}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -189,7 +186,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async fetchDataLog (idLog: string, days: number = 7): Promise<DataLog[]> {
-    const url = `${this._server}/api/v2/log/${idLog}/entry-list?days=${days}`
+    const url = `${this.server}/api/v2/log/${idLog}/entry-list?days=${days}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -199,7 +196,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async downloadCsvLog (idLog: string, filepath: string, days: number = 7): Promise<Buffer> {
-    const url = `${this._server}/api/v2/log/${idLog}/csv?days=${days}`
+    const url = `${this.server}/api/v2/log/${idLog}/csv?days=${days}`
     const response: AxiosResponse = await axios
       .get(url, { ...this.headers, responseType: 'arraybuffer' })
       .catch((error: any) => {
@@ -212,7 +209,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async deleteLog (idLog: string): Promise<void> {
-    const url = `${this._server}/api/v2/log/${idLog}`
+    const url = `${this.server}/api/v2/log/${idLog}`
     await axios.delete(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -221,7 +218,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async logEntry (idLog: string, content: Object): Promise<void> {
-    const url = `${this._server}/api/v2/log/${idLog}/entry`
+    const url = `${this.server}/api/v2/log/${idLog}/entry`
     await axios.post(url, content, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -230,7 +227,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async createAlert (taskId: string, title: string, message: string, type: string): Promise<Alert> {
-    const url = `${this._server}/api/v2/alerts`
+    const url = `${this.server}/api/v2/alerts`
     const data = { taskId, title, message, type }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -249,7 +246,7 @@ export class BotMaestroSdk {
     body: string,
     type: string
   ): Promise<void> {
-    const url = `${this._server}/api/v2/message`
+    const url = `${this.server}/api/v2/message`
     const data = { emails, logins, subject, body, type }
     await axios.post(url, data, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
@@ -259,7 +256,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async createArtifact (taskId: string, name: string, filename: string): Promise<Artifact> {
-    const url = `${this._server}/api/v2/artifact`
+    const url = `${this.server}/api/v2/artifact`
     const data = { taskId, name, filename }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -275,7 +272,7 @@ export class BotMaestroSdk {
     const formData = new FormData()
     const file = fs.createReadStream(filepath)
     formData.append('file', file)
-    const url = `${this._server}/api/v2/artifact/log/${artifactId}`
+    const url = `${this.server}/api/v2/artifact/log/${artifactId}`
     const contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
     const headers: object = {
       ...this.headers,
@@ -308,7 +305,7 @@ export class BotMaestroSdk {
     sort: String[] = ['dateCreation'],
     days: string = '7'
   ): Promise<Artifacts> {
-    const url = `${this._server}/api/v2/artifact?size=${size}&page=${page}&sort=${sort.join(
+    const url = `${this.server}/api/v2/artifact?size=${size}&page=${page}&sort=${sort.join(
       ','
     )}&days=${days}`
     // TODO: Implement not pageable
@@ -321,7 +318,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async downloadArtifact (artifactId: string, filepath: string): Promise<Buffer> {
-    const url = `${this._server}/api/v2/artifact/${artifactId}/file`
+    const url = `${this.server}/api/v2/artifact/${artifactId}/file`
     const response: AxiosResponse = await axios
       .get(url, { ...this.headers, responseType: 'arraybuffer' })
       .catch((error: any) => {
@@ -338,7 +335,7 @@ export class BotMaestroSdk {
     const type: string = getTypeInError(error)
     const stackTrace: string = getStackInError(error)
     const language: string = 'javascript'.toUpperCase()
-    const url = `${this._server}/api/v2/error`
+    const url = `${this.server}/api/v2/error`
     tags = await getDefaultTags(tags)
     const data = { taskId, type, message, stackTrace, language, tags }
     const response: AxiosResponse = await axios
@@ -367,7 +364,7 @@ export class BotMaestroSdk {
     label: string,
     key: string
   ): Promise<any> {
-    const url = `${this._server}/api/v2/credential/${label}/key/${key}`
+    const url = `${this.server}/api/v2/credential/${label}/key/${key}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -381,7 +378,7 @@ export class BotMaestroSdk {
     const file = fs.createReadStream(filepath)
     try {
       formData.append('file', file)
-      const url = `${this._server}/api/v2/error/${errorId}/screenshot`
+      const url = `${this.server}/api/v2/error/${errorId}/screenshot`
       const contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
       const headers: object = {
         ...this.headers,
@@ -398,7 +395,7 @@ export class BotMaestroSdk {
   async getCredentialByLabel (
     label: string
   ): Promise<any> {
-    const url = `${this._server}/api/v2/credential/${label}`
+    const url = `${this.server}/api/v2/credential/${label}`
     try {
       const response: AxiosResponse = await axios.get(url, this.headers)
       return response.data
@@ -410,7 +407,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   private async createAttachments (errorId: string, attachments: string[]): Promise<void> {
-    const url = `${this._server}/api/v2/error/${errorId}/attachments`
+    const url = `${this.server}/api/v2/error/${errorId}/attachments`
     for (const attachment of attachments) {
       const formData = new FormData()
       const file = fs.createReadStream(attachment)
@@ -441,7 +438,7 @@ export class BotMaestroSdk {
         { key, value, valid: true }
       ]
     }
-    const url = `${this._server}/api/v2/credential`
+    const url = `${this.server}/api/v2/credential`
     const credential = await axios.post(url, data, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
     })
@@ -460,7 +457,7 @@ export class BotMaestroSdk {
       credential = await this.createCredentialByLabel(label, key, value)
       return credential.data
     }
-    const url = `${this._server}/api/v2/credential/${label}/key`
+    const url = `${this.server}/api/v2/credential/${label}/key`
     const data = { key, value }
     credential = await axios.post(url, data, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
