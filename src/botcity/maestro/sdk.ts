@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags, createNpmList, verifyUrlServer } from './utils'
-import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts, IColumn } from './interfaces'
+import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts } from './interfaces'
 import fs from 'fs'
 import FormData from 'form-data'
 import { Column } from './columns'
@@ -152,8 +152,7 @@ export class BotMaestroSdk {
   @catchError
   async createLog (activityLabel: string, columns: Column[]): Promise<Log> {
     const url = `${this.server}/api/v2/log`
-    const valueColumns: IColumn[] = columns.map(column => column.object)
-    const data = { activityLabel, valueColumns, organizationLabel: this._login }
+    const data = { activityLabel, columns, organizationLabel: this._login }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
@@ -196,7 +195,7 @@ export class BotMaestroSdk {
   @ensureAccessToken
   @catchError
   async downloadCsvLog (idLog: string, filepath: string, days: number = 7): Promise<Buffer> {
-    const url = `${this.server}/api/v2/log/${idLog}/csv?days=${days}`
+    const url = `${this.server}/api/v2/log/${idLog}/export?days=${days}&format=csv`
     const response: AxiosResponse = await axios
       .get(url, { ...this.headers, responseType: 'arraybuffer' })
       .catch((error: any) => {
