@@ -1,5 +1,14 @@
 import axios, { AxiosResponse } from 'axios'
-import { ensureAccessToken, catchError, getMessageInError, getStackInError, getTypeInError, getDefaultTags, createNpmList, verifyUrlServer } from './utils'
+import {
+  ensureAccessToken,
+  catchError,
+  getMessageInError,
+  getStackInError,
+  getTypeInError,
+  getDefaultTags,
+  createNpmList,
+  verifyUrlServer
+} from './utils'
 import { Alert, DataLog, Log, Logs, Task, Artifact, Artifacts } from './interfaces'
 import fs from 'fs'
 import https from 'https'
@@ -14,12 +23,12 @@ export class BotMaestroSdk {
   private _accessToken: string
   private _verifySSLCert: boolean
 
-  constructor (server: string, login: string, key: string, verifySSLCert: boolean=true) {
+  constructor (server: string, login: string, key: string, verifySSLCert: boolean = true) {
     this._server = verifyUrlServer(server)
     this._login = login
     this._key = key
-    this._accessToken = "";
-    this._verifySSLCert = verifySSLCert;
+    this._accessToken = ''
+    this._verifySSLCert = verifySSLCert
   }
 
   get server (): string {
@@ -31,7 +40,10 @@ export class BotMaestroSdk {
   }
 
   private get headers (): Object {
-    return { headers: { token: this.accessToken, organization: this._login }, httpsAgent: this._getHttpsAgent() }
+    return {
+      headers: { token: this.accessToken, organization: this._login },
+      httpsAgent: this._getHttpsAgent()
+    }
   }
 
   get accessToken (): string {
@@ -49,22 +61,26 @@ export class BotMaestroSdk {
   set verifySSLCert (verifySSLCert: boolean) {
     this._verifySSLCert = verifySSLCert
   }
-;
+
   get verifySSLCert (): boolean {
     return this._verifySSLCert
   }
 
-  get isOnline(): boolean {
-    return this.accessToken || this.accessToken !== "" ? true : false
+  get isOnline (): boolean {
+    return this.accessToken !== ''
   }
 
-  private _getHttpsAgent() {
+  private _getHttpsAgent (): https.Agent {
     return new https.Agent({
-      rejectUnauthorized: this.verifySSLCert,
+      rejectUnauthorized: this.verifySSLCert
     })
   }
 
-  private _validateItems(totalItems: number | null, processedItems: number | null, failedItems: number | null) {
+  private _validateItems (
+    totalItems: number | null,
+    processedItems: number | null,
+    failedItems: number | null
+  ): any[] {
     if (totalItems === null && processedItems === null && failedItems === null) {
       console.warn(
         `Attention: this task is not reporting items. Please inform the total, processed and failed items.
@@ -88,7 +104,7 @@ export class BotMaestroSdk {
 
     if (totalItems === null || processedItems === null || failedItems === null) {
       throw new Error(
-        "You must inform at least two of the following parameters: totalItems, processedItems, failedItems."
+        'You must inform at least two of the following parameters: totalItems, processedItems, failedItems.'
       )
     }
 
@@ -97,10 +113,8 @@ export class BotMaestroSdk {
     failedItems = Math.max(0, failedItems)
 
     if (totalItems !== null && processedItems !== null && failedItems !== null) {
-      if (totalItems !== (processedItems + failedItems)) {
-        throw new Error(
-          "Total items is not equal to the sum of processed and failed items."
-        ) 
+      if (totalItems !== processedItems + failedItems) {
+        throw new Error('Total items is not equal to the sum of processed and failed items.')
       }
     }
     return [totalItems, processedItems, failedItems]
@@ -129,7 +143,9 @@ export class BotMaestroSdk {
 
       const url = `${this.server}/api/v2/workspace/login`
       const data = { login: this._login, key: this._key }
-      const response: AxiosResponse = await axios.post(url, data, {httpsAgent: this._getHttpsAgent()})
+      const response: AxiosResponse = await axios.post(url, data, {
+        httpsAgent: this._getHttpsAgent()
+      })
       this.accessToken = response.data.accessToken
     } catch (error) {
       console.error(error)
@@ -151,7 +167,13 @@ export class BotMaestroSdk {
     minExecutionDate: Date | null = null
   ): Promise<Task> {
     const url = `${this.server}/api/v2/task`
-    const data = { activityLabel, test, parameters, priority, minExecutionDate: minExecutionDate instanceof Date ? minExecutionDate.toISOString() : null }
+    const data = {
+      activityLabel,
+      test,
+      parameters,
+      priority,
+      minExecutionDate: minExecutionDate instanceof Date ? minExecutionDate.toISOString() : null
+    }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
       .catch((error: any) => {
@@ -172,14 +194,18 @@ export class BotMaestroSdk {
     failedItems: number | null = null
   ): Promise<Task> {
     const url = `${this.server}/api/v2/task/${taskId}`
-    const [validTotalItems, validProcessedItems, validFailedItems] = this._validateItems(totalItems, processedItems, failedItems)
-    const data = { 
-      state: 'FINISHED', 
-      finishStatus, 
+    const [validTotalItems, validProcessedItems, validFailedItems] = this._validateItems(
+      totalItems,
+      processedItems,
+      failedItems
+    )
+    const data = {
+      state: 'FINISHED',
+      finishStatus,
       finishMessage,
       totalItems: validTotalItems,
       processedItems: validProcessedItems,
-      failedItems: validFailedItems,
+      failedItems: validFailedItems
     }
     const response: AxiosResponse = await axios
       .post(url, data, this.headers)
@@ -201,9 +227,7 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async restartTask (
-    taskId: string | number
-  ): Promise<Task> {
+  async restartTask (taskId: string | number): Promise<Task> {
     const url = `${this.server}/api/v2/task/${taskId}`
     const data = { state: 'START' }
     const response: AxiosResponse = await axios
@@ -216,9 +240,7 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async interruptTask (
-    taskId: string | number
-  ): Promise<Task> {
+  async interruptTask (taskId: string | number): Promise<Task> {
     const url = `${this.server}/api/v2/task/${taskId}`
     const data = { interrupted: true }
     const response: AxiosResponse = await axios
@@ -307,7 +329,12 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createAlert (taskId: string | number, title: string, message: string, type: string): Promise<Alert> {
+  async createAlert (
+    taskId: string | number,
+    title: string,
+    message: string,
+    type: string
+  ): Promise<Alert> {
     const url = `${this.server}/api/v2/alerts`
     const data = { taskId, title, message, type }
     const response: AxiosResponse = await axios
@@ -411,7 +438,13 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createError (taskId: string | number, error: Error, tags: object = {}, screenshot: string = '', attachments: string[] = []): Promise<any> {
+  async createError (
+    taskId: string | number,
+    error: Error,
+    tags: object = {},
+    screenshot: string = '',
+    attachments: string[] = []
+  ): Promise<any> {
     const message: string = getMessageInError(error)
     const type: string = getTypeInError(error)
     const stackTrace: string = getStackInError(error)
@@ -441,10 +474,7 @@ export class BotMaestroSdk {
     }
   }
 
-  async getCredential (
-    label: string,
-    key: string
-  ): Promise<any> {
+  async getCredential (label: string, key: string): Promise<any> {
     const url = `${this.server}/api/v2/credential/${label}/key/${key}`
     const response: AxiosResponse = await axios.get(url, this.headers).catch((error: any) => {
       throw new Error(error.response.data.message)
@@ -473,9 +503,7 @@ export class BotMaestroSdk {
     }
   }
 
-  async getCredentialByLabel (
-    label: string
-  ): Promise<any> {
+  async getCredentialByLabel (label: string): Promise<any> {
     const url = `${this.server}/api/v2/credential/${label}`
     try {
       const response: AxiosResponse = await axios.get(url, this.headers)
@@ -508,16 +536,10 @@ export class BotMaestroSdk {
     }
   }
 
-  async createCredentialByLabel (
-    label: string,
-    key: string,
-    value: any
-  ): Promise<any> {
+  async createCredentialByLabel (label: string, key: string, value: any): Promise<any> {
     const data = {
       label,
-      secrets: [
-        { key, value, valid: true }
-      ]
+      secrets: [{ key, value, valid: true }]
     }
     const url = `${this.server}/api/v2/credential`
     const credential = await axios.post(url, data, this.headers).catch((error: any) => {
@@ -528,11 +550,7 @@ export class BotMaestroSdk {
 
   @ensureAccessToken
   @catchError
-  async createCredential (
-    label: string,
-    key: string,
-    value: any
-  ): Promise<any> {
+  async createCredential (label: string, key: string, value: any): Promise<any> {
     let credential = await this.getCredentialByLabel(label)
     if (credential == null) {
       credential = await this.createCredentialByLabel(label, key, value)

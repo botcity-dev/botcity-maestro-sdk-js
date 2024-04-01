@@ -94,10 +94,7 @@ export const createNpmList = async (): Promise<string> => {
 }
 
 const tmpFile = (filename: string): string => {
-  return path.join(
-    os.tmpdir(),
-    filename
-  ).toString()
+  return path.join(os.tmpdir(), filename).toString()
 }
 
 export const verifyUrlServer = (server: string): string => {
