@@ -16,5 +16,9 @@ jobs:
         run: npm run lint
       - name: Run tests
         run: npm run test
+        env:
+          BOTCITY_SERVER: ${{ secrets.BOTCITY_SERVER }}
+          BOTCITY_LOGIN: ${{ secrets.BOTCITY_LOGIN }}
+          BOTCITY_KEY: ${{ secrets.BOTCITY_KEY }}
       - name: Execute build 🔧
         run: npm run build
