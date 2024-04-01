@@ -19,7 +19,7 @@ jobs:
       - name: Run eslint
         run: npm run lint
       - name: Run tests
-        run: npm run jest
+        run: npm run test
       - name: Execute build 🔧
         run: npm run build
       - name: Publish package on NPM 📦
